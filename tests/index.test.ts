@@ -54,7 +54,7 @@ describe("promocode validation application", () => {
                     before: "2022-01-01",
                 },
                 "@meteo": {
-                    is: "cloud",
+                    is: "cloud", //or clear, according to what is returned by API just now
                     temp: {
                         lt: "100", // Celsius here.
                     },
@@ -104,6 +104,38 @@ describe("promocode validation application", () => {
             reasons: {
                 age: "isNotLt",
             },
+            status: "denied",
+        });
+    });
+
+    //new added test
+    it("should return an error on meteo criterion", async () => {
+        const promoCode = {
+            name: "WeatherCodeMeteoError",
+            avantage: { percent: 20 },
+            restrictions: {
+                "@meteo": {
+                    is: "clear",
+                    temp: {
+                        lt: "100", // Celsius here.
+                    },
+                },
+            },
+        };
+
+        const redeemInfo = {
+            promocode_name: "WeatherCodeMeteoError",
+            arguments: {
+                age: 16,
+                meteo: { town: "Lyon" },
+            },
+        };
+
+        const received = await askReduction(redeemInfo, promoCode);
+
+        expect(received).toEqual({
+            reasons: { meteo: 'isNotclear' },
+            promocode_name: "WeatherCodeMeteoError",
             status: "denied",
         });
     });

@@ -25,7 +25,7 @@ export async function meteoChecking({ is, temp: tempConditions }: MeteoCondition
     if (!!is && !description.includes(is)) return { valid: false, error: `isNot${is}`, context: 'meteo' };
 
     for (const condition in tempConditions) {
-        if (!temperatureMapping[condition].compare(temp, tempConditions[condition]))
+        if (!temperatureMapping[condition].compare(temp, parseFloat(tempConditions[condition])))
             return { valid: false, error: temperatureMapping[condition].failure, context: 'meteo' };
     }
 
