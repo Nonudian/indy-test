@@ -1,4 +1,4 @@
-interface ReductionInput {
+export interface ReductionInput {
     promocode_name: string;
     arguments: {
         age: number;
@@ -8,16 +8,16 @@ interface ReductionInput {
     };
 }
 
-interface PromoCode {
+export interface PromoCode {
     _id?: string;
     name: string;
     avantage: {
         percent: number;
     };
-    restrictions: { '@or': OrCondition; } | { '@age': AgeCondition; } | { '@date': DateCondition; };
+    restrictions: { '@or': OrCondition; } | { '@age': AgeCondition; } | { '@date': DateCondition; } | { '@meteo': MeteoCondition; };
 }
 
-interface ReductionResponse {
+export interface ReductionResponse {
     promocode_name: string;
     status: string;
     avantage?: {
@@ -26,6 +26,9 @@ interface ReductionResponse {
     reasons?: {};
 }
 
-type OrCondition = Array<{ '@age': AgeCondition; } | { '@date': DateCondition; }>;
-type AgeCondition = { lt: number, gt: number; } | { eq: number; };
-type DateCondition = { after?: string, before?: string; };
+export type OrCondition = Array<{ '@age': AgeCondition; } | { '@date': DateCondition; } | { '@meteo': MeteoCondition; }>;
+export type AgeCondition = { lt: number, gt: number; } | { eq: number; };
+export type DateCondition = { after?: string, before?: string; };
+export type MeteoCondition = { is: string; temp: { lt?: string; gt?: string; }; };
+
+export type MeteoResponse = { weather: [{ description: string; }], main: { temp: number; }; };

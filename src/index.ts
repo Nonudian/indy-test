@@ -1,31 +1,76 @@
 import moment from 'moment';
+import fetch from 'node-fetch';
 
+import type {
+    ReductionInput,
+    PromoCode,
+    ReductionResponse,
+    OrCondition,
+    AgeCondition,
+    DateCondition,
+    MeteoCondition,
+    MeteoResponse
+} from './types';
+
+
+async function orChecking(restrictions: OrCondition, argMapping: Record<string, (...args: any) => Promise<boolean>>): Promise<boolean> {
+    for (let property of restrictions) {
+        const propertyName = Object.keys(property)[0];
+        if (await argMapping[propertyName](property[propertyName])) return true;
+    }
+    return false;
+}
 
 /* We consider that both "name" and "promocode_name" are the same when we call this function */
 export async function askReduction(askReductionInput: ReductionInput, promoCode: PromoCode): Promise<ReductionResponse> {
 
-    const { promocode_name, arguments: { age } } = askReductionInput;
+    const { promocode_name, arguments: { age, meteo: { town } } } = askReductionInput;
     const { avantage, restrictions } = promoCode;
 
-    const argMapping: Record<string, (...args: any) => boolean> = {
-        '@age': (args: AgeCondition) => {
+    const argMapping: Record<string, (...args: any) => Promise<boolean>> = {
+        '@age': async (args: AgeCondition) => {
             return (!!args['eq'] && args['eq'] === age)
                 || (args['gt'] < age && age < args['lt']);
         },
-        '@date': ({ after, before }: DateCondition) => {
+        '@date': async ({ after, before }: DateCondition) => {
             const afterCondition = !!after && moment().isAfter(moment(after));
             const beforeCondition = !!before && moment().isBefore(moment(before));
 
-            if (!!after && !!before) return afterCondition && afterCondition;
+            if (!!after && !!before) return afterCondition && beforeCondition;
             if (!!after) return afterCondition;
-            else return beforeCondition;
+            return beforeCondition;
+        },
+        '@meteo': async ({ is, temp: { lt, gt } }: MeteoCondition) => {
+            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${town}&appid=bf2e6745b314f9e6f9bf3cab81fe337f&units=metric`);
+            if (!response.ok) throw new Error(response.statusText);
+
+            const { weather: [{ description }], main: { temp } }: MeteoResponse = await response.json();
+
+            if (!description.includes(is)) return false;
+
+            const greaterThan = !!gt && parseFloat(gt) < temp;
+            const lesserThan = !!lt && parseFloat(lt) > temp;
+
+            if (!!gt && !!lt) return greaterThan && lesserThan;
+            if (!!gt) return greaterThan;
+            return lesserThan;
         }
     };
 
     for (const prop in restrictions) {
-        if (prop === '@or') continue;
+        if (prop === '@or') {
+            const valid = await orChecking(restrictions[prop], argMapping);
+            if (!valid) {
+                return {
+                    promocode_name,
+                    status: 'denied',
+                    reasons: {}
+                };
+            }
+            continue;
+        }
 
-        const valid = argMapping[prop](restrictions[prop]);
+        const valid = await argMapping[prop](restrictions[prop]);
         if (!valid) {
             return {
                 promocode_name,
@@ -41,6 +86,7 @@ export async function askReduction(askReductionInput: ReductionInput, promoCode:
         avantage
     };
 };
+
 
 askReduction(
     {
@@ -73,13 +119,19 @@ askReduction(
                     }
                 }
             ],
+            "@meteo": {
+                is: "cloud",
+                temp: {
+                    lt: "100",
+                },
+            },
             "@age": {
                 "lt": 30,
                 "gt": 15
             },
             "@date": {
                 "after": "2019-01-01",
-                "before": "2020-06-30"
+                "before": "2022-06-30"
             },
         }
-    });
+    }).then(response => console.log(response));
