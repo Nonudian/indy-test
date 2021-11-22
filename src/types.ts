@@ -14,7 +14,7 @@ export interface PromoCode {
     avantage: {
         percent: number;
     };
-    restrictions: { '@or': OrCondition; } | { '@age': AgeCondition; } | { '@date': DateCondition; } | { '@meteo': MeteoCondition; };
+    restrictions: { '@or': OrConditions; } | { '@age': AgeConditions; } | { '@date': DateConditions; } | { '@meteo': MeteoConditions; };
 }
 
 export interface ReductionResponse {
@@ -26,11 +26,22 @@ export interface ReductionResponse {
     reasons?: {};
 }
 
-export type OrCondition = Array<{ '@age': AgeCondition; } | { '@date': DateCondition; } | { '@meteo': MeteoCondition; }>;
+export type OrConditions = Array<{ '@age': AgeConditions; } | { '@date': DateConditions; } | { '@meteo': MeteoConditions; }>;
 
-export type AgeCondition = { lt: number, gt: number; } | { eq: number; };
+export type AgeConditions = { lt: number, gt: number; eq: number; };
 
-export type DateCondition = { after?: string, before?: string; };
+export type DateConditions = { after?: string, before?: string; };
 
-export type MeteoCondition = { is: string; temp: { lt?: string; gt?: string; }; };
+export type MeteoConditions = { is?: string; temp?: { lt?: string; gt?: string; }; };
 export type MeteoResponse = { weather: [{ description: string; }], main: { temp: number; }; };
+
+export interface ValidationStatus {
+    valid: boolean,
+    error?: string;
+    context?: string;
+};
+
+export interface PropertyMapping {
+    compare: (...args: any[]) => boolean,
+    failure: string;
+}

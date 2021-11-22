@@ -54,7 +54,7 @@ describe("promocode validation application", () => {
                     before: "2022-01-01",
                 },
                 "@meteo": {
-                    is: "clear",
+                    is: "cloud",
                     temp: {
                         lt: "100", // Celsius here.
                     },
