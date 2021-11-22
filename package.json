@@ -1,13 +1,13 @@
 {
     "name": "junior-technical-test",
     "version": "1.0.0",
-    "main": "index.js",
+    "main": "dist/index.js",
     "description": "",
     "scripts": {
-        "start": "nodemon src/index",
+        "start": "tsc && node dist/index.js && nodemon dist/index.js",
+        "compile": "tsc && node dist/index.js",
         "test": "jest",
-        "test:watch": "jest --watch",
-        "ts": "tsc && node dist/index.js"
+        "test:watch": "jest --watch"
     },
     "keywords": [],
     "author": "William CHAZOT (Nonudian)",
