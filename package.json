@@ -1,0 +1,14 @@
+{
+    "name": "indy-test",
+    "version": "1.0.0",
+    "main": "dist/app.js",
+    "scripts": {
+        "start": "tsc && node dist/app.js"
+    },
+    "keywords": [],
+    "author": "William CHAZOT (Nonudian)",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^4.5.2"
+    }
+}
