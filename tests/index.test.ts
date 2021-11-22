@@ -1,4 +1,7 @@
-const askReduction = require("../dist/index")
+
+// @ts-nocheck 
+import { askReduction } from '../src/index';
+
 
 describe("promocode validation application", () => {
     it("should return acceptance of a simple promo code", async () => {
@@ -11,22 +14,22 @@ describe("promocode validation application", () => {
                     lt: 20,
                 },
             },
-        }
+        };
         const redeemInfo = {
             promocode_name: "WeatherCodeAge",
             arguments: {
                 age: 15,
             },
-        }
+        };
 
-        const received = await askReduction(redeemInfo, promoCode)
+        const received = await askReduction(redeemInfo, promoCode);
 
         expect(received).toEqual({
             avantage: { percent: 25 },
             promocode_name: "WeatherCodeAgeSimple",
             status: "accepted",
-        })
-    })
+        });
+    });
 
     it("should return acceptance of a complex valid promo code", async () => {
         const promoCode = {
@@ -57,7 +60,7 @@ describe("promocode validation application", () => {
                     },
                 },
             },
-        }
+        };
 
         const redeemInfo = {
             promocode_name: "WeatherCodeAgeComplex",
@@ -65,16 +68,16 @@ describe("promocode validation application", () => {
                 age: 16,
                 meteo: { town: "Lyon" },
             },
-        }
+        };
 
-        const received = await askReduction(redeemInfo, promoCode)
+        const received = await askReduction(redeemInfo, promoCode);
 
         expect(received).toEqual({
             avantage: { percent: 20 },
             promocode_name: "WeatherCodeAgeComplex",
             status: "accepted",
-        })
-    })
+        });
+    });
 
     it("should reject an invalid promo code", async () => {
         const promoCode = {
@@ -86,15 +89,15 @@ describe("promocode validation application", () => {
                     lt: 20,
                 },
             },
-        }
+        };
         const redeemInfo = {
             promocode_name: "WeatherCodeInvalid",
             arguments: {
                 age: 55,
             },
-        }
+        };
 
-        const received = await askReduction(redeemInfo, promoCode)
+        const received = await askReduction(redeemInfo, promoCode);
 
         expect(received).toEqual({
             promocode_name: "WeatherCodeInvalid",
@@ -102,6 +105,6 @@ describe("promocode validation application", () => {
                 age: "isNotLt",
             },
             status: "denied",
-        })
-    })
-})
+        });
+    });
+});

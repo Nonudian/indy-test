@@ -27,8 +27,10 @@ export interface ReductionResponse {
 }
 
 export type OrCondition = Array<{ '@age': AgeCondition; } | { '@date': DateCondition; } | { '@meteo': MeteoCondition; }>;
-export type AgeCondition = { lt: number, gt: number; } | { eq: number; };
-export type DateCondition = { after?: string, before?: string; };
-export type MeteoCondition = { is: string; temp: { lt?: string; gt?: string; }; };
 
+export type AgeCondition = { lt: number, gt: number; } | { eq: number; };
+
+export type DateCondition = { after?: string, before?: string; };
+
+export type MeteoCondition = { is: string; temp: { lt?: string; gt?: string; }; };
 export type MeteoResponse = { weather: [{ description: string; }], main: { temp: number; }; };

@@ -22,13 +22,12 @@ async function orChecking(restrictions: OrCondition, argMapping: Record<string, 
 }
 
 /* We consider that both "name" and "promocode_name" are the same when we call this function */
-export async function askReduction(askReductionInput: ReductionInput, promoCode: PromoCode): Promise<ReductionResponse> {
-
-    const { promocode_name, arguments: { age, meteo: { town } } } = askReductionInput;
-    const { avantage, restrictions } = promoCode;
+export async function askReduction({ arguments: inputArgs }: ReductionInput, { name, avantage, restrictions }: PromoCode): Promise<ReductionResponse> {
 
     const argMapping: Record<string, (...args: any) => Promise<boolean>> = {
         '@age': async (args: AgeCondition) => {
+            const { age } = inputArgs;
+
             return (!!args['eq'] && args['eq'] === age)
                 || (args['gt'] < age && age < args['lt']);
         },
@@ -41,6 +40,8 @@ export async function askReduction(askReductionInput: ReductionInput, promoCode:
             return beforeCondition;
         },
         '@meteo': async ({ is, temp: { lt, gt } }: MeteoCondition) => {
+            const { town } = inputArgs.meteo;
+
             const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${town}&appid=bf2e6745b314f9e6f9bf3cab81fe337f&units=metric`);
             if (!response.ok) throw new Error(response.statusText);
 
@@ -62,9 +63,9 @@ export async function askReduction(askReductionInput: ReductionInput, promoCode:
             const valid = await orChecking(restrictions[prop], argMapping);
             if (!valid) {
                 return {
-                    promocode_name,
-                    status: 'denied',
-                    reasons: {}
+                    promocode_name: name,
+                    reasons: {},
+                    status: 'denied'
                 };
             }
             continue;
@@ -73,65 +74,65 @@ export async function askReduction(askReductionInput: ReductionInput, promoCode:
         const valid = await argMapping[prop](restrictions[prop]);
         if (!valid) {
             return {
-                promocode_name,
-                status: 'denied',
-                reasons: {}
+                promocode_name: name,
+                reasons: {},
+                status: 'denied'
             };
         }
     }
 
     return {
-        promocode_name,
-        status: 'accepted',
-        avantage
+        avantage,
+        promocode_name: name,
+        status: 'accepted'
     };
 };
 
 
-askReduction(
-    {
-        "promocode_name": "WeatherCode",
-        "arguments": {
-            "age": 25,
-            "meteo": { "town": "Lyon" }
-        }
-    },
-    {
-        "_id": "...",
-        "name": "WeatherCodeBis",
-        "avantage": { "percent": 30 },
-        "restrictions": {
-            "@or": [
-                {
-                    "@age": {
-                        "eq": 40
-                    }
-                },
-                {
-                    "@date": {
-                        "after": "2020-01-01",
-                        "before": "2029-01-01"
-                    }
-                },
-                {
-                    "@date": {
-                        "after": "2099-01-01"
-                    }
-                }
-            ],
-            "@meteo": {
-                is: "cloud",
-                temp: {
-                    lt: "100",
-                },
-            },
-            "@age": {
-                "lt": 30,
-                "gt": 15
-            },
-            "@date": {
-                "after": "2019-01-01",
-                "before": "2022-06-30"
-            },
-        }
-    }).then(response => console.log(response));
+// askReduction(
+//     {
+//         "promocode_name": "WeatherCode",
+//         "arguments": {
+//             "age": 25,
+//             "meteo": { "town": "Lyon" }
+//         }
+//     },
+//     {
+//         "_id": "...",
+//         "name": "WeatherCodeBis",
+//         "avantage": { "percent": 30 },
+//         "restrictions": {
+//             "@or": [
+//                 {
+//                     "@age": {
+//                         "eq": 40
+//                     }
+//                 },
+//                 {
+//                     "@date": {
+//                         "after": "2020-01-01",
+//                         "before": "2029-01-01"
+//                     }
+//                 },
+//                 {
+//                     "@date": {
+//                         "after": "2099-01-01"
+//                     }
+//                 }
+//             ],
+//             "@meteo": {
+//                 is: "cloud",
+//                 temp: {
+//                     lt: "100",
+//                 },
+//             },
+//             "@age": {
+//                 "lt": 30,
+//                 "gt": 15
+//             },
+//             "@date": {
+//                 "after": "2019-01-01",
+//                 "before": "2022-06-30"
+//             },
+//         }
+//     }).then(response => console.log(response));
